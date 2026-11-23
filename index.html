@@ -16,17 +16,37 @@
   <meta property="og:image" content="https://chiesaevangelicadisavigliano.github.io/info-contatti/assets/anteprima.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <link rel="icon" href="assets/logo-colori.png">
+  <link rel="icon" href="assets/icona.png">
 
-  <script>document.documentElement.classList.add("js");</script>
-  <link rel="preload" href="assets/fonts/bricolage-grotesque-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Ordine di caricamento: 1) logo, 2) font, 3) disegno (con segnaposto sfocato già nella pagina), 4) il resto quando serve -->
+  <link rel="preload" href="assets/logo-colori.webp" as="image" type="image/webp" fetchpriority="high">
+  <link rel="preload" href="assets/fonts/bricolage-grotesque.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/literata.woff2" as="font" type="font/woff2" crossorigin>
+  <script>
+    // L'apertura parte quando logo e font sono pronti (vedi fondo pagina), al massimo dopo 1,5 secondi.
+    (function (d) {
+      d.classList.add("js");
+      window.apri = function () {
+        if (d.classList.contains("pronta")) return;
+        d.classList.add("pronta");
+        if (window.dopoApertura) window.dopoApertura();
+      };
+      setTimeout(window.apri, 1500);
+    })(document.documentElement);
+  </script>
   <style>
     /* Identità visiva: vedi grafiche-savigliano/brand/tokens.css e docs/linee-guida-visive.md
-       Font con licenza SIL OFL 1.1 (assets/fonts/LICENSE-*.txt). */
-    @font-face { font-family: "Bricolage Grotesque"; font-weight: 200 800; font-style: normal; font-display: swap;
-      src: url("assets/fonts/bricolage-grotesque-latin-standard-normal.woff2") format("woff2"); }
-    @font-face { font-family: "Literata"; font-weight: 200 900; font-style: normal; font-display: swap;
-      src: url("assets/fonts/literata-latin-standard-normal.woff2") format("woff2"); }
+       Font con licenza SIL OFL 1.1 (assets/fonts/LICENSE-*.txt), alleggeriti per il web:
+       solo caratteri latini e italiani; Bricolage pesi 400-800, Literata peso 400. */
+    @font-face { font-family: "Bricolage Grotesque"; font-weight: 400 800; font-style: normal; font-display: swap;
+      src: url("assets/fonts/bricolage-grotesque.woff2") format("woff2"); }
+    @font-face { font-family: "Literata"; font-weight: 400; font-style: normal; font-display: swap;
+      src: url("assets/fonts/literata.woff2") format("woff2"); }
+    /* Font di riserva regolati sulle misure dei font del brand: quando questi arrivano, il testo non salta */
+    @font-face { font-family: "Bricolage riserva"; src: local("Arial"), local("Helvetica"), local("Roboto");
+      size-adjust: 102%; ascent-override: 91%; descent-override: 26%; line-gap-override: 0%; }
+    @font-face { font-family: "Literata riserva"; src: local("Georgia"), local("Times New Roman"), local("Noto Serif");
+      size-adjust: 108%; ascent-override: 109%; descent-override: 28.5%; line-gap-override: 0%; }
 
     :root {
       color-scheme: light;
@@ -41,8 +61,8 @@
       --carta: #F7F3EC;
       --azzurro: #EAF1FB;
       --notte-testo: #C9D5EA;
-      --f-titoli: "Bricolage Grotesque", Arial, sans-serif;
-      --f-testi: "Literata", Georgia, serif;
+      --f-titoli: "Bricolage Grotesque", "Bricolage riserva", Arial, sans-serif;
+      --f-testi: "Literata", "Literata riserva", Georgia, serif;
       --colonna: 640px;
     }
 
@@ -50,6 +70,7 @@
     html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
     body { background: var(--carta); color: var(--testo); font-family: var(--f-testi); font-size: 1.0625rem; line-height: 1.55; }
     img, svg { display: block; }
+    img[data-src]:not([src]) { display: none; } /* senza JavaScript vale la copia in <noscript> */
     a { color: inherit; }
     .colonna { max-width: var(--colonna); margin: 0 auto; padding: 0 20px; }
     .icona { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
@@ -57,7 +78,7 @@
     /* ---------- Apertura ---------- */
     .sala { position: relative; max-width: 760px; margin: 0 auto; }
     /* fascia bassa: si vedono travi, pulpito e prime file; il resto del disegno è ritagliato */
-    .sala .disegno { width: 100%; height: clamp(230px, 58vw, 330px); object-fit: cover; object-position: 50% 30%;
+    .sala .disegno { background: var(--carta) 50% 30% / cover no-repeat; width: 100%; height: clamp(230px, 58vw, 330px); object-fit: cover; object-position: 50% 30%;
       /* in alto il disegno resta pieno (sotto il logo); sfuma nella carta ai lati e in basso */
       -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 98%), linear-gradient(to right, transparent 0, #000 14%, #000 86%, transparent 100%);
       -webkit-mask-composite: source-in;
@@ -71,7 +92,7 @@
     /* sul telefono il disegno è ingrandito: le travi riempiono la fascia dietro il logo */
     @media (max-width: 600px) {
       .sala { overflow: hidden; }
-      .sala .disegno { width: 124%; max-width: none; margin-left: -12%; height: 270px; object-position: 50% 28%; }
+      .sala .disegno { width: 124%; max-width: none; margin-left: -12%; height: 270px; object-position: 50% 28%; background-position: 50% 28%; }
     }
 
     .benvenuto { margin-top: -28px; position: relative; text-align: center; }
@@ -169,13 +190,15 @@
       @keyframes sali   { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
       @keyframes allunga { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
-      .js .sala .disegno { animation: emergi 1.6s cubic-bezier(.2,.7,.2,1) both; }
+      .js:not(.pronta) .sala .disegno, .js:not(.pronta) .sala::before, .js:not(.pronta) .sala .logo,
+      .js:not(.pronta) .benvenuto h1, .js:not(.pronta) .benvenuto > .filetto, .js:not(.pronta) .benvenuto .intro { opacity: 0; }
+      .pronta .sala .disegno { animation: emergi 1.6s cubic-bezier(.2,.7,.2,1) both; }
       @keyframes appari { from { opacity: 0; } to { opacity: 1; } }
-      .js .sala::before  { animation: appari 1s .2s ease-out both; }
-      .js .sala .logo    { animation: scendi .9s .45s cubic-bezier(.2,.7,.2,1) both; }
-      .js .benvenuto h1  { animation: sali .8s .7s cubic-bezier(.2,.7,.2,1) both; }
-      .js .benvenuto > .filetto { animation: allunga .7s 1.05s cubic-bezier(.2,.7,.2,1) both; }
-      .js .benvenuto .intro { animation: sali .8s .95s cubic-bezier(.2,.7,.2,1) both; }
+      .pronta .sala::before  { animation: appari 1s .2s ease-out both; }
+      .pronta .sala .logo    { animation: scendi .9s .45s cubic-bezier(.2,.7,.2,1) both; }
+      .pronta .benvenuto h1  { animation: sali .8s .7s cubic-bezier(.2,.7,.2,1) both; }
+      .pronta .benvenuto > .filetto { animation: allunga .7s 1.05s cubic-bezier(.2,.7,.2,1) both; }
+      .pronta .benvenuto .intro { animation: sali .8s .95s cubic-bezier(.2,.7,.2,1) both; }
 
       .js .rivela { opacity: 0; transform: translateY(26px); transition: opacity .75s ease, transform .75s cubic-bezier(.2,.7,.2,1); transition-delay: var(--ritardo, 0s); }
       .js .rivela.visibile { opacity: 1; transform: none; }
@@ -219,8 +242,9 @@
 
   <main>
     <header class="sala">
-      <img class="logo" src="assets/logo-colori.png" width="450" height="203" alt="Savigliano, Chiesa Cristiana Evangelica Pentecostale ADI">
-      <img class="disegno" src="assets/sala-culto.webp" width="1280" height="956" alt="Disegno ad acquerello della sala di culto: travi in legno, file di sedie bianche e il pulpito sotto la scritta di Salmi 126:3.">
+      <img class="logo" src="assets/logo-colori.webp" width="450" height="203" fetchpriority="high" alt="Savigliano, Chiesa Cristiana Evangelica Pentecostale ADI">
+      <img class="disegno" src="assets/sala-culto-960.webp" srcset="assets/sala-culto-640.webp 640w, assets/sala-culto-960.webp 960w, assets/sala-culto-1280.webp 1280w" sizes="(max-width: 600px) 124vw, 760px" width="1280" height="956" decoding="async"
+        style="background-image: url(data:image/webp;base64,UklGRvgAAABXRUJQVlA4IOwAAAAQBgCdASogABgAPu1orVCppaQiqAqpMB2JZQDE3vAXQDrgMSIrT5grn2G15X60UyUbsZceEeEpvUwA/uJ9LPURQ0D8vA4NiyLKLJk1u9HKil+WbvtjW9TIltafPFYEO9vCm0lDpwi2yi0W+bFhmib7tO/D2NQQ9Zdj+20/jcTtcwnYEzoJOa3zfxhs9AZO6JFFYY6aZveQ9R5FyXO2Glr+Z6Oexv9LlilUiMa9RTPZqMc40w46xZfsy7DpObTmoICQgEpjjCb/t9+XHeiwSYZnSkxwOQ3BJZf7dlD4pRNjdr+yVumy/wcw6eAAAA==)" alt="Disegno ad acquerello della sala di culto: travi in legno, file di sedie bianche e il pulpito sotto la scritta di Salmi 126:3.">
     </header>
 
     <div class="benvenuto colonna">
@@ -340,7 +364,8 @@
   <footer>
     <div class="colonna">
       <a class="link-adi rivela" href="https://www.assembleedidio.org/" target="_blank" rel="noopener">
-        <img src="assets/logo-adi.png" width="225" height="225" alt="">
+        <img data-src="assets/logo-adi.webp" width="180" height="180" decoding="async" alt="">
+        <noscript><img src="assets/logo-adi.webp" width="180" height="180" alt=""></noscript>
         <span>
           <small>Facciamo parte delle</small>
           <b>Assemblee di Dio in Italia</b>
@@ -356,7 +381,9 @@
 
   <script>
     // Comparsa delle sezioni durante lo scorrimento (senza librerie esterne)
-    (function () {
+    function avviaRivela() {
+      // immagini in fondo alla pagina: si scaricano solo dopo l'apertura
+      document.querySelectorAll("img[data-src]").forEach(function (i) { i.src = i.getAttribute("data-src"); });
       var el = document.querySelectorAll(".rivela");
       // ritardo a cascata per gli elementi degli elenchi
       document.querySelectorAll(".punti, .elenco").forEach(function (lista) {
@@ -367,7 +394,24 @@
         voci.forEach(function (v) { if (v.isIntersecting) { v.target.classList.add("visibile"); io.unobserve(v.target); } });
       }, { rootMargin: "0px 0px -8% 0px", threshold: 0.12 });
       el.forEach(function (e) { io.observe(e); });
+    }
+
+    // Le sezioni iniziano a comparire solo dopo l'apertura, così l'ordine resta: logo, titolo, orari, il resto
+    if (document.documentElement.classList.contains("pronta")) avviaRivela(); else window.dopoApertura = avviaRivela;
+
+    // Apertura appena logo e font sono arrivati (oppure dopo 1,5 secondi, vedi <head>)
+    (function () {
+      var logo = document.querySelector(".sala .logo");
+      var attese = [new Promise(function (ok) {
+        if (logo.complete) ok(); else { logo.addEventListener("load", ok); logo.addEventListener("error", ok); }
+      })];
+      if (document.fonts && document.fonts.load) {
+        attese.push(document.fonts.load('700 1em "Bricolage Grotesque"').catch(function () {}));
+        attese.push(document.fonts.load('400 1em "Literata"').catch(function () {}));
+      }
+      Promise.all(attese).then(window.apri);
     })();
+
     document.querySelector(".su").addEventListener("click", function (e) { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); });
   </script>
 
